@@ -1,0 +1,41 @@
+long-experienc'd | tqry-ncpnlwnri'm
+length | 16 | 16
+hypen_occurence_rate | 1 | 1
+first_hypen_position | 4 | 4
+last_hypen_position | 4 | 4
+apostrophe_occurence_rate | 1 | 1
+first_apostrophe_position | 14 | 14
+last_apostrophe_position | 14 | 14
+e_occurence_rate | 3 | 3
+e_first_position | 5 | 5
+e_last_position | 11 | 11
+s_occurence_rate | 0 | 0
+s_first_position |  | 
+s_last_position |  | 
+r_occurence_rate | 1 | 1
+r_first_position | 9 | 9
+r_last_position | 9 | 9
+v_occurence_rate | 0 | 0
+v_first_position |  | 
+v_last_position |  | 
+i_occurence_rate | 1 | 1
+i_first_position | 10 | 10
+i_last_position | 10 | 10
+n_occurence_rate | 2 | 2
+n_first_position | 2 | 2
+n_last_position | 12 | 12
+g_occurence_rate | 1 | 1
+g_first_position | 3 | 3
+g_last_position | 3 | 3
+c_occurence_rate | 1 | 1
+c_first_position | 13 | 13
+c_last_position | 13 | 13
+a_occurence_rate | 0 | 0
+a_first_position |  | 
+a_last_position |  | 
+t_occurence_rate | 0 | 0
+t_first_position |  | 
+t_last_position |  | 
+u_occurence_rate | 0 | 0
+u_first_position |  | 
+u_last_position |  | 

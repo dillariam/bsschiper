@@ -9,6 +9,7 @@ class Decrypt
     protected $plain_words = [];
     protected $encrypted_words = [];
     protected $strong_words_length = 18;
+    protected $strong_words_min_length = 14;
     protected $strong_words_stage= 1;
     protected $alpha_cipher = [];
 
@@ -23,7 +24,7 @@ class Decrypt
 
         $this->decryptFile(self::ENCRYPTED_FILE);
 
-        var_dump($this->alpha_cipher);
+        var_dump($this->alpha_cipher . ' rarrr');
     }
 
     public function comparePlainAndEncryptedWords()
@@ -34,19 +35,22 @@ class Decrypt
 
         $matches = [];
 
-        while ($this->strong_words_length >= 12) {
+        while ($this->strong_words_length >= $this->strong_words_min_length) {
             foreach ($encrypted_words as $encrypted_word => $encrypted_word_meta) {
                 foreach ($plain_words as $plain_word => $plain_word_meta) {
                     //Stops after it finds all the letters
-                    if (count($this->alpha_cipher)  >= 20) {
-                        return;
+                    if (count($this->alpha_cipher)  >= 25) {
+                        $this->decryptFile(self::ENCRYPTED_FILE);
                     }
 
                     //Checks to se if words have 100% match on meta data;  If so we assume same word.
-                    if (count(array_diff($encrypted_word_meta, $plain_word_meta)) == 0) {
+                    if (count(array_diff_assoc($encrypted_word_meta, $plain_word_meta)) == 0) {
                         $this->addToAlphaCipher($plain_word, $encrypted_word);
-                        var_dump($plain_word);
-                        
+
+                        /****************TEST**********************/
+                        ksort($this->alpha_cipher);
+                        var_dump($this->alpha_cipher);
+
 
                         if (count($plain_words) == 0 || count($encrypted_words) == 0) {
                             $this->strong_words_length -= 1;
@@ -61,8 +65,7 @@ class Decrypt
             $this->strong_words_length -= 1;
             $this->comparePlainAndEncryptedWords();
         }
-
-        return;
+     
     }
 
 
@@ -75,7 +78,7 @@ class Decrypt
 
         foreach ($words as $word) {
            
-           if(strlen($word) >=  12){
+           if(strlen($word) >=  6){
                 //Remove all special characters except the one we are passing in
                 $pretty_words[] = strtolower(preg_replace("/[^a-zA-Z-\-\']/", "", $word));
            }
@@ -100,7 +103,7 @@ class Decrypt
 
     public function toneDownRequirements(String $word)
     {
-        if ($this->strong_words_length < 14) {
+        if ($this->strong_words_length <  $this->strong_words_min_length) {
             $this->strong_words_stage++;
             $this->strong_words_length = 20;
         }
@@ -115,7 +118,11 @@ class Decrypt
             case 3:
                 return strlen($word) == $this->strong_words_length && strpos($word, "'") > 0;
                 break;
+            case 4:
+                return strlen($word) == $this->strong_words_length;
+                break;
             default:
+                $this->strong_words_length = 0;
                 return strlen($word) == $this->strong_words_length;
                 break;
         }
@@ -212,5 +219,7 @@ class Decrypt
         $new_message = strtr($base, $ciphered_text, $decrypted_text);
 
         file_put_contents(__DIR__ . "\\..\\files\\decrypted_file.txt", $new_message);
+
+        exit();
     }
 }

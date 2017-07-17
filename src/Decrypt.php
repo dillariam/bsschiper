@@ -9,7 +9,7 @@ class Decrypt
     protected $plain_words = [];
     protected $encrypted_words = [];
     protected $strong_words_length = 18;
-    protected $strong_words_min_length = 14;
+    protected $strong_words_min_length = 10;
     protected $strong_words_stage= 1;
     protected $alpha_cipher = [];
 
@@ -39,7 +39,7 @@ class Decrypt
             foreach ($encrypted_words as $encrypted_word => $encrypted_word_meta) {
                 foreach ($plain_words as $plain_word => $plain_word_meta) {
                     //Stops after it finds all the letters
-                    if (count($this->alpha_cipher)  >= 25) {
+                    if (count($this->alpha_cipher)  == 26) {
                         $this->decryptFile(self::ENCRYPTED_FILE);
                     }
 
@@ -48,9 +48,9 @@ class Decrypt
                         $this->addToAlphaCipher($plain_word, $encrypted_word);
 
                         /****************TEST**********************/
-                        ksort($this->alpha_cipher);
-                        var_dump($this->alpha_cipher);
-
+                        // ksort($this->alpha_cipher);
+                        // var_dump($this->alpha_cipher);
+                        var_dump($plain_word . ' | ' . count($this->alpha_cipher));
 
                         if (count($plain_words) == 0 || count($encrypted_words) == 0) {
                             $this->strong_words_length -= 1;
@@ -58,6 +58,20 @@ class Decrypt
                         }
                         
                         $this->comparePlainAndEncryptedWords();
+                    }else{
+                        //Removes words for current list
+                        foreach($this->plain_words as $key => $current_word){
+                            if($current_word == $plain_word){
+                                unset($this->plain_words[$key]);
+                            }
+                        }
+
+                        //Removes words for current list
+                        foreach($this->encrypted_words as $key => $current_word){
+                            if($current_word == $encrypted_word){
+                                unset($this->encrypted_words[$key]);
+                            }
+                        }
                     }
                 }
             }

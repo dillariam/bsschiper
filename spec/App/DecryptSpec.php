@@ -1,6 +1,6 @@
 <?php
 
-namespace spec;
+namespace spec\App;
 
 use App\Decrypt;
 use PhpSpec\ObjectBehavior;
@@ -12,4 +12,5 @@ class DecryptSpec extends ObjectBehavior
     {
         $this->shouldHaveType(Decrypt::class);
     }
+
 }

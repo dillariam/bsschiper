@@ -31,7 +31,7 @@ class Word
      * @param String $type ('plain', 'encrypted')
      * @return Array of words
      */
-    public static function getWordsFromFile(String $file, String $type)
+    public function getWordsFromFile(String $file, String $type)
     {
         $base = file_get_contents(__DIR__ . "\\..\\files\\$file");
 

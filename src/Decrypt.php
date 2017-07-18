@@ -11,7 +11,6 @@ class Decrypt
     public function generate()
     {
         
-
         $cipher = new Cipher;
         $word = new Word($cipher);
         
@@ -19,7 +18,7 @@ class Decrypt
 
         $this->decryptFile($cipher->getCipherKey(), $file);
 
-        echo "The file has been decrypted!";
+        echo "The file has been decrypted!\r\n";
     }
 
     public function decryptFile(array $cipher, String $file)

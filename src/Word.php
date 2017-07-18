@@ -2,8 +2,6 @@
 
 namespace App;
 
-use App\Letter;
-
 class Word
 {
     const PLAIN_FILE = 'plain.txt';
@@ -13,19 +11,25 @@ class Word
     protected $strong_words_length = 18;
     protected $strong_words_min_length = 10;
     protected $strong_words_stage= 1;
-    public $alpha_cipher = [];
 
-    public function __construct() {
+    /**
+     * Constructor that gets words from both files and has a cipher class
+     *
+     * @param Cipher $cipher
+     */
+    public function __construct(Cipher $cipher)
+    {
         $this->plain_words = $this->getWordsFromFile(self::PLAIN_FILE, 'plain');
         $this->encrypted_words = $this->getWordsFromFile(self::ENCRYPTED_FILE, 'encrypted');
+        $this->cipher = $cipher;
     }
 
     /**
      * Gets words from File
      *
-     * @param String $file
+     * @param String $file pulled from constants
      * @param String $type ('plain', 'encrypted')
-     * @return void
+     * @return Array of words
      */
     public static function getWordsFromFile(String $file, String $type)
     {
@@ -46,60 +50,63 @@ class Word
 
     public function comparePlainAndEncryptedWords()
     {
-
+        //Gets words based off requirements
         $plain_words = $this->fetchStrongWords($this->plain_words, 'plain');
         $encrypted_words = $this->fetchStrongWords($this->encrypted_words, 'encrypted');
 
         $matches = [];
 
-        while ($this->strong_words_length >= $this->strong_words_min_length) {
+        //Run while cipher key is not complete
+        while (count($this->cipher->getCipherKey()) != 26) {
             foreach ($encrypted_words as $encrypted_word => $encrypted_word_meta) {
-                $encrypted_word_meta = Word::getWordMetaData($encrypted_word, 'encrypted');
+                //Gets meta data as it goes along to not take up memory
+                $encrypted_word_meta = $this->getWordMetaData($encrypted_word, 'encrypted');
 
                 foreach ($plain_words as $plain_word => $plain_word_meta) {
-                    $plain_word_meta = Word::getWordMetaData($plain_word, 'plain');
+                    //Gets meta data as it goes along to not take up memory
+                    $plain_word_meta = $this->getWordMetaData($plain_word, 'plain');
 
                     //Checks to se if words have 100% match on meta data;  If so we assume same word.
                     if (count(array_diff_assoc($encrypted_word_meta, $plain_word_meta)) == 0) {
-                        /****************TEST**********************/
-                        var_dump($plain_word . ' | ' . count($this->alpha_cipher));
+                        //Adds key to cipher and removes both words
+                        $this->cipher->addToCipherKey($plain_word, $encrypted_word);
+                        $this->plain_words = $this->removeWords($this->plain_words, $plain_word);
+                        $this->encrypted_words = $this->removeWords($this->encrypted_words, $encrypted_word);
 
-                        $this->addToAlphaCipher($plain_word, $encrypted_word);
-
-                        //Gets final letter and executes the decrypt
-                        if (count($this->alpha_cipher)  == 25) {
-
-                            $final = new Letter();
-                            $this->alpha_cipher = $final->getFinalLetter($this->alpha_cipher);
-
-                            var_dump($this->alpha_cipher);
-                            die();
-                            $this->decryptFile(self::ENCRYPTED_FILE);
+                        //Gets final letter and then passes encypted file
+                        if (count($this->cipher->getCipherKey())  == 25) {
+                            $this->cipher->getFinalLetter();
+                            return self::ENCRYPTED_FILE;
                         }
                         
-
+                        //If either word bank runs out start over again with new requirements
                         if (count($plain_words) == 0 || count($encrypted_words) == 0) {
                             $this->strong_words_length -= 1;
-                            $this->comparePlainAndEncryptedWords();
+                            return $this->comparePlainAndEncryptedWords();
                         }
-                        
-                        $this->comparePlainAndEncryptedWords();
                     }
                 }
 
-                //Removes words for current list
-                foreach ($this->encrypted_words as $key => $current_word) {
-                    if ($current_word == $encrypted_word) {
-                        unset($this->encrypted_words[$key]);
-                    }
-                }
+                //Removes word from current list
+                $this->encrypted_words = $this->removeWords($this->encrypted_words, $encrypted_word);
             }
 
+            //Less requirements and run again
             $this->strong_words_length -= 1;
-            $this->comparePlainAndEncryptedWords();
+            return $this->comparePlainAndEncryptedWords();
         }
+
+        return;
     }
 
+    
+    /**
+     * Brings back strong words based off requirements that lessen after more letters are found
+     *
+     * @param array $words
+     * @param String $type
+     * @return Array of words considered strong
+     */
     public function fetchStrongWords(array $words, String $type)
     {
         $strong_words_array = [];
@@ -112,6 +119,12 @@ class Word
         return $strong_words_array;
     }
 
+    /**
+     * Requirements conditional that change as words are iterated through
+     *
+     * @param String $word
+     * @return conditionals for strong words
+     */
     public function requirementsForStrongWords(String $word)
     {
         if ($this->strong_words_length <  $this->strong_words_min_length) {
@@ -129,42 +142,13 @@ class Word
             case 3:
                 return strlen($word) == $this->strong_words_length && strpos($word, "'") > 0;
                 break;
-            case 4:
-                return strlen($word) == $this->strong_words_length;
-                break;
             default:
-                $this->strong_words_length = 0;
                 return strlen($word) == $this->strong_words_length;
                 break;
         }
     }
 
-    public function addToAlphaCipher($plain_word, $encrypted_word)
-    {
-        
-        $plain_letters = str_split(preg_replace("/[^a-zA-Z]/", "", $plain_word));
-        $encrypted_letters = str_split(preg_replace("/[^a-zA-Z]/", "", $encrypted_word));
-
-        foreach ($plain_letters as $key => $letter) {
-            if (!array_key_exists(strtolower($letter), $this->alpha_cipher) && !in_array(strtolower($encrypted_letters[$key]), $this->alpha_cipher)) {
-                $this->alpha_cipher[strtolower($letter)] = strtolower($encrypted_letters[$key]);
-            }
-        }
-
-        //Removes words for current list
-        foreach ($this->plain_words as $key => $current_word) {
-            if ($current_word == $plain_word) {
-                unset($this->plain_words[$key]);
-            }
-        }
-
-        //Removes words for current list
-        foreach ($this->encrypted_words as $key => $current_word) {
-            if ($current_word == $encrypted_word) {
-                unset($this->encrypted_words[$key]);
-            }
-        }
-    }
+    
 
 
     public function getWordMetaData($word, $type)
@@ -190,7 +174,7 @@ class Word
     {
         $letter_info = [];
 
-        foreach ($this->alpha_cipher as $real_letter => $cipher_letter) {
+        foreach ($this->cipher->getCipherKey() as $real_letter => $cipher_letter) {
             $letter = $type == 'plain' ? $real_letter : $cipher_letter;
             $letter_info[$real_letter . '_occurence_rate']= substr_count($word, $letter);
             $letter_info[$real_letter . '_first_position']= stripos($word, $letter);
@@ -201,5 +185,23 @@ class Word
         //Array of occurence_rate, first_position, last_position;
         return $letter_info;
     }
-    
+
+    /**
+     * Removes words from list
+     *
+     * @param Array $words
+     * @param String $word
+     * @return new array of words
+     */
+    public function removeWords(array $words, String $word)
+    {
+        //Removes words for current list
+        foreach ($words as $key => $current_word) {
+            if ($current_word == $word) {
+                unset($words[$key]);
+            }
+        }
+
+        return $words;
+    }
 }

@@ -3,59 +3,35 @@
 namespace App;
 
 use App\Word;
+use App\Cipher;
 
 class Decrypt
 {
-    
-    
 
     public function generate()
     {
-        //$this->findEBasedOffOccurence(self::ENCRYPTED_FILE);
+        
 
-        $word = new Word;
-        $word->comparePlainAndEncryptedWords();
+        $cipher = new Cipher;
+        $word = new Word($cipher);
+        
+        $file = $word->comparePlainAndEncryptedWords();
 
+        $this->decryptFile($cipher->getCipherKey(), $file);
+
+        echo "The file has been decrypted!";
     }
 
-    public function decryptFile($file)
+    public function decryptFile(array $cipher, String $file)
     {
         $base = strtolower(file_get_contents(__DIR__ . "\\..\\files\\$file"));
 
-        $ciphered_text = implode(array_values($this->alpha_cipher));
-        $decrypted_text = implode(array_keys($this->alpha_cipher));
+        $ciphered_text = implode(array_values($cipher));
+        $decrypted_text = implode(array_keys($cipher));
 
         $new_message = strtr($base, $ciphered_text, $decrypted_text);
 
         file_put_contents(__DIR__ . "\\..\\files\\decrypted_file.txt", $new_message);
 
-        exit();
     }
-
-   
-
-    
-
-    
-    
-
-    public function findEBasedOffOccurence($path)
-    {
-        $base = file_get_contents(__DIR__ . "\\..\\files\\$path");
-
-        $letterCount = [];
-
-        foreach (range('a', 'z') as $letter) {
-            $letterCount[$letter] = substr_count($base, $letter);
-        }
-
-        arsort($letterCount);
-        
-        $this->alpha_cipher['e'] = key($letterCount);
-    }
-
-    
-
-
-    
 }
